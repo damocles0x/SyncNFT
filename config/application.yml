@@ -1,0 +1,15 @@
+database:
+  driverName: mysql
+  host: localhost
+  port: "3306"
+  databaseName: nft
+  username: root
+  password: root
+  charset: utf8mb4
+  loc: Asia/Shanghai
+
+nodes:
+  length: 3
+  node1: "https://bsc-dataseed.binance.org/"
+  node2: "https://bsc-dataseed1.defibit.io/"
+  node3: "https://bsc-dataseed1.ninicoin.io/"
