@@ -8,7 +8,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"regexp"
 	"strconv"
-	"sync"
 )
 
 func DataToJson(data interface{}) []byte {
@@ -55,16 +54,16 @@ func ParsingUint256(s string) string {
 /**
 获取客户端链接
 */
-func GetClient(mutex *sync.Mutex) *ethclient.Client {
+func GetClient() *ethclient.Client {
 	url := config.APPVIPER.GetString("nodes.node1")
 	length := config.APPVIPER.GetInt("nodes.length")
 	//调用次数
 	y := 0
 	//为了保证多个协程调用时url不会重复，要对y加锁
-	mutex.Lock()
+	config.Mutex.Lock()
 	y++
-	mutex.Unlock()
-	url = config.APPVIPER.GetString("nodes" + strconv.Itoa(y%length))
+	config.Mutex.Unlock()
+	url = config.APPVIPER.GetString("nodes.node" + strconv.Itoa(y%length))
 	dial, err := ethclient.Dial(url)
 	if err != nil {
 		log.Error(err)

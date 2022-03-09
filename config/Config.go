@@ -13,17 +13,20 @@ import (
 	"os"
 	"path"
 	"strconv"
+	"sync"
 )
 
 var (
 	APPVIPER *viper.Viper
 	DB       *gorm.DB
 	//EsCli *elastic.Client
+	Mutex *sync.Mutex
 )
 
 func init() {
 	APPVIPER = initAppConfig()
 	DB = initDB()
+	Mutex = initMutex()
 	//EsCli = initElasticSearch()
 }
 
@@ -39,7 +42,10 @@ func initAppConfig() *viper.Viper {
 	}
 	return appViper
 }
-
+func initMutex() *sync.Mutex {
+	mutex := sync.Mutex{}
+	return &mutex
+}
 func initDB() *gorm.DB {
 	host := APPVIPER.GetString("database.host")
 	port := APPVIPER.GetString("database.port")
