@@ -3,14 +3,14 @@ package db
 import "time"
 
 type NFT struct {
-	Id            int64     `gorm:"id"` // id
-	CreatedTime   time.Time `gorm:"created_time"`
-	UpdatedTime   time.Time `gorm:"updated_time"`
-	TxFromAddress string    `gorm:"tx_from_address"` // 发送者
-	TxToAddress   string    `gorm:"tx_to_address"`   // 接收者
-	TxHash        string    `gorm:"tx_hash"`         // 交易hash
-	TokenId       string    `gorm:"token_id"`        // tokenId
-	ContractId    string    `gorm:"contract_id"`     // contract表Id
+	Id              int64     `gorm:"id"` // id
+	CreatedTime     time.Time `gorm:"created_time"`
+	UpdatedTime     time.Time `gorm:"updated_time"`
+	TxFromAddress   string    `gorm:"tx_from_address"`  // 发送者
+	TxToAddress     string    `gorm:"tx_to_address"`    // 接收者
+	TxHash          string    `gorm:"tx_hash"`          // 交易hash
+	TokenId         string    `gorm:"token_id"`         // tokenId
+	ContractAddress string    `gorm:"contract_address"` // contract表Id
 }
 
 func (NFT) TableName() string {

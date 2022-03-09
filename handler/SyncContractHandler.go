@@ -2,6 +2,7 @@ package handler
 
 import (
 	"SyncNFT/contract"
+	"SyncNFT/db"
 	"SyncNFT/utils"
 	"context"
 	"encoding/hex"
@@ -17,7 +18,7 @@ import (
 )
 
 //从后往前同步数据,每笔交易只用插入一次
-func SyncData(client *ethclient.Client, blockNum int64) {
+func SyncData(client *ethclient.Client, blockNum int64, resultMap map[string]byte) {
 	contractABI, _ := abi.JSON(strings.NewReader(contract.OracleABI))
 	//15000区块之前没有nft数据
 	for i := 15000; i < int(blockNum); i++ {
@@ -36,16 +37,22 @@ func SyncData(client *ethclient.Client, blockNum int64) {
 		filterLogs, err := client.FilterLogs(context.Background(), query)
 		if err != nil {
 			log.Error(err)
+			client = utils.GetClient()
+			continue
 		}
+		go loopFilterLogDesc(client, filterLogs, blockNum, resultMap)
+		blockNum = blockNum - 100
 
-		loopFilterLogDesc(client, filterLogs)
 	}
 }
 
-func loopFilterLogDesc(client *ethclient.Client, datas []types.Log) {
+func loopFilterLogDesc(client *ethclient.Client, datas []types.Log, num int64, resultMap map[string]byte) {
 	for i := len(datas) - 1; i >= 0; i-- {
-		DealLogMessage(client, datas[i])
+		if _, ok := resultMap[strings.ToLower(datas[i].Address.String())]; ok {
+			DealLogMessage(client, datas[i])
+		}
 	}
+	fmt.Println(num)
 }
 
 func DealLogMessage(client *ethclient.Client, l types.Log) {
@@ -77,9 +84,10 @@ func DealLogMessage(client *ethclient.Client, l types.Log) {
 			to = strings.ToLower(common.HexToAddress(l.Topics[2].Hex()).String())
 			if len(l.Data) == 64 {
 				tokenId = utils.ParsingUint256(hex.EncodeToString(l.Data[0:64]))
-			} else {
-				log.Error("Failed to parse log data", l.Data)
 			}
+			//else {
+			//	log.Error("Failed to parse log data", l.Address)
+			//}
 
 			break
 		case 1:
@@ -88,15 +96,22 @@ func DealLogMessage(client *ethclient.Client, l types.Log) {
 				from = hex.EncodeToString(l.Data)[0:64]
 				to = hex.EncodeToString(l.Data)[64:128]
 				tokenId = hex.EncodeToString(l.Data)[128:192]
-			} else {
-				log.Error("Failed to parse log data", l.Data)
 			}
+			break
+			//else {
+			//	log.Error("Failed to parse log data", l.Address)
+			//}
 		}
 
-		fmt.Println(from, to, tokenId)
-
+		nft := db.NFT{
+			TxFromAddress:   from,
+			TxToAddress:     to,
+			TokenId:         tokenId,
+			ContractAddress: strings.ToLower(l.Address.String()),
+			TxHash:          strings.ToLower(l.TxHash.String()),
+		}
+		db.InsertNFT(&nft)
 		/*	case "0x17307eab39ab6107e8899845ad3d59bd9653f200f220920489ca2b5937696c31":
 			//ApprovalForAll*/
-
 	}
 }
