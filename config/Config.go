@@ -116,7 +116,7 @@ func initElasticSearch() *elastic.Client {
 
 func initRedis() *redis.Client {
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     APPVIPER.GetString("redis.host") + APPVIPER.GetString("redis.port"),
+		Addr:     APPVIPER.GetString("redis.host") + ":" + APPVIPER.GetString("redis.port"),
 		Password: APPVIPER.GetString("redis.password"), // no password set
 		DB:       APPVIPER.GetInt("redis.db"),          // use default DB
 	})

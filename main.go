@@ -13,12 +13,12 @@ func main() {
 	//cmd.Execute() 15545400
 
 	//调试用
-	//15844391 27073
+	//15906107 27341
 	client := utils.GetClient()
 	address := db.GetContractAddress()
 	resultMap := utils.StringArrayToMap(address)
 	handler.SyncData(client,
-		15545400, resultMap)
+		15906107, resultMap)
 	//handler.CrawlData(1,274)
 
 }

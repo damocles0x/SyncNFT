@@ -31,19 +31,22 @@ func SyncData(client *ethclient.Client, blockNum int64, resultMap map[string]byt
 					//contractABI.Events["ApprovalForAll"].ID,
 				},
 			},
-			FromBlock: big.NewInt(blockNum - 100),
+			FromBlock: big.NewInt(blockNum - 50),
 			ToBlock:   big.NewInt(blockNum),
 			//Addresses: []common.Address{common.HexToAddress("0xeB9E4BEd62A82CFe17cBB90ed63d79722D9dA411")},
 		}
 
+		//a := time.Now()
 		filterLogs, err := client.FilterLogs(context.Background(), query)
 		if err != nil {
 			log.Error(err)
 			client = utils.GetClient()
 			continue
 		}
+
+		//fmt.Println(time.Since(a),"条数", len(filterLogs))
 		go loopFilterLogDesc(client, filterLogs, blockNum, resultMap)
-		blockNum = blockNum - 100
+		blockNum = blockNum - 50
 
 	}
 }
@@ -67,7 +70,7 @@ func loopFilterLogDesc(client *ethclient.Client, datas []types.Log, num int64, r
 			}
 		}
 	}
-	go db.InsertNFTBatch(&nfts)
+	db.InsertNFTBatch(&nfts)
 	fmt.Println(num)
 }
 
