@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/go-redis/redis"
 	"github.com/olivere/elastic/v7"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -19,8 +20,9 @@ import (
 var (
 	APPVIPER *viper.Viper
 	DB       *gorm.DB
-	//EsCli *elastic.Client
-	Mutex *sync.Mutex
+	EsCli    *elastic.Client
+	Mutex    *sync.Mutex
+	Redis    *redis.Client
 )
 
 func init() {
@@ -28,6 +30,7 @@ func init() {
 	DB = initDB()
 	Mutex = initMutex()
 	//EsCli = initElasticSearch()
+	Redis = initRedis()
 }
 
 func initAppConfig() *viper.Viper {
@@ -109,4 +112,18 @@ func initElasticSearch() *elastic.Client {
 		panic("new es client failed, err=" + err.Error())
 	}
 	return cli
+}
+
+func initRedis() *redis.Client {
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     APPVIPER.GetString("redis.host") + APPVIPER.GetString("redis.port"),
+		Password: APPVIPER.GetString("redis.password"), // no password set
+		DB:       APPVIPER.GetInt("redis.db"),          // use default DB
+	})
+
+	_, err := rdb.Ping().Result()
+	if err != nil {
+		log.Error(err)
+	}
+	return rdb
 }

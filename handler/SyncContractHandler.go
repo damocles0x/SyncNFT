@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"SyncNFT/config"
 	"SyncNFT/contract"
 	"SyncNFT/db"
 	"SyncNFT/utils"
@@ -12,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/go-redis/redis"
 	log "github.com/sirupsen/logrus"
 	"math/big"
 	"strings"
@@ -47,15 +49,29 @@ func SyncData(client *ethclient.Client, blockNum int64, resultMap map[string]byt
 }
 
 func loopFilterLogDesc(client *ethclient.Client, datas []types.Log, num int64, resultMap map[string]byte) {
+	nfts := []db.NFT{}
 	for i := len(datas) - 1; i >= 0; i-- {
 		if _, ok := resultMap[strings.ToLower(datas[i].Address.String())]; ok {
-			DealLogMessage(client, datas[i])
+			res := DealLogMessage(client, datas[i])
+			//判断redis中是否有这个key没有就添加且放到nfts中
+			key := utils.StringToHash(strings.ToLower(res.ContractAddress + res.TokenId))
+
+			_, err := config.Redis.Get(key).Result()
+			if err == redis.Nil {
+				//没有这个key值就要添加
+				set := config.Redis.Set(key, key, 0)
+				if set.Err() != nil {
+					log.Error(set.Err().Error())
+				}
+				nfts = append(nfts, *res)
+			}
 		}
 	}
+	go db.InsertNFTBatch(&nfts)
 	fmt.Println(num)
 }
 
-func DealLogMessage(client *ethclient.Client, l types.Log) {
+func DealLogMessage(client *ethclient.Client, l types.Log) *db.NFT {
 	switch l.Topics[0].String() {
 	/*	case "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925":
 		//Approval*/
@@ -110,8 +126,20 @@ func DealLogMessage(client *ethclient.Client, l types.Log) {
 			ContractAddress: strings.ToLower(l.Address.String()),
 			TxHash:          strings.ToLower(l.TxHash.String()),
 		}
-		db.InsertNFT(&nft)
+		return &nft
+		//enity := ES.EsEnity{
+		//	ID:              utils.StringToHash(strings.ToLower(l.Address.String()) + tokenId),
+		//	TxFromAddress:   from,
+		//	TxToAddress:     to,
+		//	TokenId:         tokenId,
+		//	ContractAddress: strings.ToLower(l.Address.String()),
+		//	TxHash:          strings.ToLower(l.TxHash.String()),
+		//}
+
+		//db.InsertNFT(&nft)
+		//go ES.SaveOrUpdateData(&enity)
 		/*	case "0x17307eab39ab6107e8899845ad3d59bd9653f200f220920489ca2b5937696c31":
 			//ApprovalForAll*/
 	}
+	return nil
 }

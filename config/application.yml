@@ -8,6 +8,14 @@ database:
   charset: utf8mb4
   loc: Asia/Shanghai
 
+elasticSearch:
+  host: "http://127.0.0.1:9200/"
+
+ redis:
+   host: "localhost"
+   port: "6379"
+   password: ""
+   db: 0
 nodes:
   length: 3
   node1: "https://bsc-dataseed.binance.org/"

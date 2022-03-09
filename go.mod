@@ -5,6 +5,7 @@ go 1.16
 require (
 	github.com/PuerkitoBio/goquery v1.8.0
 	github.com/ethereum/go-ethereum v1.10.16
+	github.com/go-redis/redis v6.15.9+incompatible // indirect
 	github.com/holiman/uint256 v1.2.0
 	github.com/jonboulle/clockwork v0.2.2 // indirect
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible

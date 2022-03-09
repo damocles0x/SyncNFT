@@ -3,6 +3,7 @@ package utils
 import (
 	"SyncNFT/config"
 	"encoding/json"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/holiman/uint256"
 	log "github.com/sirupsen/logrus"
@@ -70,4 +71,10 @@ func GetClient() *ethclient.Client {
 	}
 
 	return dial
+}
+
+//组装唯一key
+func StringToHash(s string) string {
+	keccak256 := crypto.Keccak256Hash([]byte(s))
+	return keccak256.String()
 }

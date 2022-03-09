@@ -2,6 +2,8 @@ package db
 
 import (
 	"SyncNFT/config"
+	"bytes"
+	"fmt"
 	log "github.com/sirupsen/logrus"
 	"time"
 )
@@ -34,4 +36,21 @@ func InsertNFT(nft *NFT) {
 		nft.UpdatedTime = time.Now()
 		config.DB.Create(nft)
 	}
+}
+
+func InsertNFTBatch(nfts *[]NFT) error {
+	var buffer bytes.Buffer
+	sql := "INSERT INTO `nft` (`created_time`,`updated_time`,`tx_from_address`,`tx_to_address`,`tx_hash`,`token_id`,`contract_address`) VALUES"
+	if _, err := buffer.WriteString(sql); err != nil {
+		return err
+	}
+	time := time.Now().Format("2006-01-02 15:04:05")
+	for i, nft := range *nfts {
+		if i == len(*nfts)-1 {
+			buffer.WriteString(fmt.Sprintf("('%s','%s','%s','%s','%s','%s','%s');", time, time, nft.TxFromAddress, nft.TxToAddress, nft.TxHash, nft.TokenId, nft.ContractAddress))
+		} else {
+			buffer.WriteString(fmt.Sprintf("('%s','%s','%s','%s','%s','%s','%s'),", time, time, nft.TxFromAddress, nft.TxToAddress, nft.TxHash, nft.TokenId, nft.ContractAddress))
+		}
+	}
+	return config.DB.Exec(buffer.String()).Error
 }
